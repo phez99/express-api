@@ -68,6 +68,10 @@ Response Body Error :
 
 Endpoint : `PATCH` /api/users/current
 
+Header :
+
+- Authorization : token
+
 Request Body :
 
 ```json
@@ -77,6 +81,72 @@ Request Body :
 }
 ```
 
+Response Body Success :
+
+```json
+{
+  "data": {
+    "username": "pzn",
+    "name": "codephez"
+  }
+}
+```
+
+Response Body Error :
+
+```json
+{
+  "errors": "Name length max 100"
+}
+```
+
 ## Get User API
 
+Endpoint : `GET` /api/users/current
+
+Header :
+
+- Authorization : token
+
+Response Body Success :
+
+```json
+{
+  "data": {
+    "username": "pzn",
+    "name": "codehpez"
+  }
+}
+```
+
+Response Body Error :
+
+```json
+{
+  "errors": "Unauthorize"
+}
+```
+
 ## Logout User API
+
+Endpoint : `DELETE` /api/users/logout
+
+Header :
+
+- Authorization : token
+
+Response Body Success :
+
+```json
+{
+  "data": "Ok"
+}
+```
+
+Response Body Error :
+
+```json
+{
+  "errors": "Unauthorize"
+}
+```
