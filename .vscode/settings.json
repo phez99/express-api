@@ -1,2 +1,12 @@
 {
+  "jest.jestCommandLine": "npm run test --",
+  "jest.rootPath": "test",
+  "jest.shell": "/bin/bash",
+  "jest.coverageColors": { "uncovered": "rgba(255,99,71, 0.2)", "partially-covered": "rgba(255,215,0, 0.2)"},
+  "jest.outputConfig": {
+    "revealOn": "run",
+    "revealWithFocus": "terminal",
+    "clearOnRun": "terminal"
+  },
+  "testing.openTesting": "neverOpen"
 }

@@ -42,7 +42,7 @@ Response Body Error :
 
 ## Update Contact API
 
-Endpoint : `PUT` /api/contacts/:id
+Endpoint : `PUT` /api/contacts/:contactid
 
 Header :
 

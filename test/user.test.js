@@ -1,27 +1,24 @@
 import supertest from "supertest";
-import { prismaClient } from "../src/application/database.js";
 import { web } from "../src/application/web.js";
 import { logger } from "../src/application/logging.js";
+import { createTestUser, getTestUser, removeTestUser } from "./test-util.js";
+import bcrypt from "bcrypt";
 
 describe("POST /api/users", function () {
   afterEach(async () => {
-    await prismaClient.user.deleteMany({
-      where: {
-        username: "codephez",
-      },
-    });
+    await removeTestUser();
   });
 
   it("should can register new user", async () => {
     const result = await supertest(web).post("/api/users").send({
-      username: "codephez",
+      username: "test",
       password: "rahasia",
-      name: "aseptian abdurohman",
+      name: "test",
     });
-
+    // logger.info(result.body);
     expect(result.status).toBe(200);
-    expect(result.body.data.username).toBe("codephez");
-    expect(result.body.data.name).toBe("aseptian abdurohman");
+    expect(result.body.data.username).toBe("test");
+    expect(result.body.data.name).toBe("test");
     expect(result.body.data.password).toBeUndefined();
   });
 
@@ -32,26 +29,198 @@ describe("POST /api/users", function () {
       name: "",
     });
 
-    logger.info(result.body);
+    // logger.info(result.body);
     expect(result.status).toBe(400);
     expect(result.body.errors).toBeDefined();
   });
 
   it("should reject if username is already registered", async () => {
     let result = await supertest(web).post("/api/users").send({
-      username: "codephez",
+      username: "test",
       password: "rahasia",
-      name: "aseptian abdurohman",
+      name: "test",
     });
-    logger.info(result.body);
+    // logger.info(result.body);
     result = await supertest(web).post("/api/users").send({
-      username: "codephez",
+      username: "test",
       password: "rahasia",
-      name: "aseptian abdurohman",
+      name: "test",
     });
 
-    logger.info(result.body);
+    // logger.info(result.body);
     expect(result.status).toBe(400);
     expect(result.body.errors).toBeDefined();
+  });
+});
+
+describe("POST /api/users/login", function () {
+  beforeEach(async () => {
+    await createTestUser();
+  });
+
+  afterEach(async () => {
+    await removeTestUser();
+  });
+
+  it("should can login", async () => {
+    const result = await supertest(web).post("/api/users/login").send({
+      username: "test",
+      password: "rahasia",
+    });
+    // logger.info(result.body);
+    expect(result.status).toBe(200);
+    expect(result.body.data.token).toBeDefined();
+    expect(result.body.data.token).not.toBe("test");
+  });
+
+  it("should rejected login if request is invalid", async () => {
+    const result = await supertest(web).post("/api/users/login").send({
+      username: "",
+      password: "",
+    });
+    // logger.info(result.body);
+    expect(result.status).toBe(400);
+    expect(result.body.errors).toBeDefined();
+  });
+
+  it("should rejected login if password wrong", async () => {
+    const result = await supertest(web).post("/api/users/login").send({
+      username: "test",
+      password: "salah",
+    });
+    // logger.info(result.body);
+    expect(result.status).toBe(401);
+    expect(result.body.errors).toBeDefined();
+  });
+
+  it("should rejected login if username wrong", async () => {
+    const result = await supertest(web).post("/api/users/login").send({
+      username: "salah",
+      password: "rahasia",
+    });
+    // logger.info(result.body);
+    expect(result.status).toBe(401);
+    expect(result.body.errors).toBeDefined();
+  });
+});
+
+describe("GET /api/users/current", function () {
+  beforeEach(async () => {
+    await createTestUser();
+  });
+
+  afterEach(async () => {
+    await removeTestUser();
+  });
+
+  it("should can get current user", async () => {
+    const result = await supertest(web)
+      .get("/api/users/current")
+      .set("Authorization", "test");
+
+    // logger.info(result.body);
+    expect(result.status).toBe(200);
+    expect(result.body.data.username).toBe("test");
+    expect(result.body.data.name).toBe("test");
+  });
+
+  it("should reject if token is invalid ", async () => {
+    const result = await supertest(web)
+      .get("/api/users/current")
+      .set("Authorization", "salah");
+
+    // logger.info(result.body);
+    expect(result.status).toBe(401);
+    expect(result.body.errors).toBeDefined();
+  });
+});
+
+describe("PATCH /api/users/current", function () {
+  beforeEach(async () => {
+    await createTestUser();
+  });
+
+  afterEach(async () => {
+    await removeTestUser();
+  });
+
+  it("should can update user", async () => {
+    const result = await supertest(web)
+      .patch("/api/users/current")
+      .set("Authorization", "test")
+      .send({ name: "eko", password: "rahasialagi" });
+
+    // logger.info(result.body);
+    expect(result.status).toBe(200);
+    expect(result.body.data.username).toBe("test");
+    expect(result.body.data.name).toBe("eko");
+
+    const user = await getTestUser();
+    expect(await bcrypt.compare("rahasialagi", user.password)).toBe(true);
+  });
+
+  it("should can update user name", async () => {
+    const result = await supertest(web)
+      .patch("/api/users/current")
+      .set("Authorization", "test")
+      .send({ name: "eko" });
+
+    // logger.info(result.body);
+    expect(result.status).toBe(200);
+    expect(result.body.data.username).toBe("test");
+    expect(result.body.data.name).toBe("eko");
+  });
+
+  it("should can update password", async () => {
+    const result = await supertest(web)
+      .patch("/api/users/current")
+      .set("Authorization", "test")
+      .send({ password: "rahasialagi" });
+
+    // logger.info(result.body);
+    expect(result.status).toBe(200);
+    expect(result.body.data.username).toBe("test");
+    expect(result.body.data.name).toBe("test");
+
+    const user = await getTestUser();
+    expect(await bcrypt.compare("rahasialagi", user.password)).toBe(true);
+  });
+
+  it("should reject update user if is invalid ", async () => {
+    const result = await supertest(web)
+      .patch("/api/users/current")
+      .set("Authorization", "salah")
+      .send({});
+
+    // logger.info(result.body);
+    expect(result.status).toBe(401);
+    expect(result.body.errors).toBeDefined();
+  });
+});
+
+describe("DELETE /api/users/logout", function () {
+  beforeEach(async () => {
+    await createTestUser();
+  });
+
+  afterEach(async () => {
+    await removeTestUser();
+  });
+  it("should can logout", async () => {
+    const result = await supertest(web)
+      .delete("/api/users/logout")
+      .set({ Authorization: "test" });
+
+    expect(result.status).toBe(200);
+    expect(result.body.data).toBe("Ok");
+    const user = await getTestUser();
+    expect(user.token).toBeNull();
+  });
+  it("should reject logout if token is invalid", async () => {
+    const result = await supertest(web)
+      .delete("/api/users/logout")
+      .set({ Authorization: "salah" });
+
+    expect(result.status).toBe(401);
   });
 });
