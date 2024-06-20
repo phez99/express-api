@@ -16,7 +16,7 @@ Request Body :
   "city": "kota apa",
   "province": "provinsi apa",
   "country": "negara apa",
-  "postal_code": "kode pos"
+  "postal_code": "41253"
 }
 ```
 

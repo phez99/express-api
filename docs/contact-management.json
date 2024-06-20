@@ -1,0 +1,27 @@
+{
+ "openapi": "3.0.3",
+ "info": {
+  "title": "Express API",
+   "version": "1.0.1",
+   "description": "Contact Management"
+  },
+ "servers": [
+  {
+    "url": "http://localhost:3000",
+    "description": "Server description"
+  }
+ ],
+ "paths": {
+  "/api/users": {
+    "post": {
+      "description": "Register User API",
+      "parameters": [],
+      "responses": {
+        "200": {
+          "description": "OK"
+        }
+      }
+    }
+  }
+ }
+}
